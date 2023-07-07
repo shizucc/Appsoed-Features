@@ -1,0 +1,13 @@
+[
+{
+    "id" : "kost001",
+    "name" : "Permata Kost",
+    "type" : ["L","P"],
+    "images" : [],
+    "address" : "Jl Menur RT 07, RW 02, Kalimanah Wetan, Kalimanah, Purbalingga, Jawa Tengah",
+    "facilities" : ["AC", "Kamar Mandi dalam", "Lapangan Tenis", "Security", "Music 24 Jam"],
+    "location" : "",
+    "price_start" : 4000000,
+    "owner" : "081390404971"
+}
+]
