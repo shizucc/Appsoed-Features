@@ -40,8 +40,6 @@ Future<dynamic> getKost() async {
   }
 }
 
-List<String> imgList = List<String>.from(dataKost['images']);
-
 // print(runtimeType())
 class DetailKost extends StatefulWidget {
   const DetailKost({super.key, required this.id});
@@ -58,7 +56,6 @@ class _DetailKostState extends State<DetailKost> {
   late AppBarState _appBarState;
   late int _currentImg;
   late dynamic kost;
-  // late List<String> imgList;
 
   @override
   void initState() {
@@ -92,10 +89,6 @@ class _DetailKostState extends State<DetailKost> {
 
   Future<dynamic> displayKost() async {
     return kost;
-  }
-
-  Future<List> imageList() async {
-    return kost['images'];
   }
 
   @override
@@ -200,13 +193,89 @@ class _DetailKostState extends State<DetailKost> {
                           borderRadius: BorderRadius.circular(5)),
                       margin: const EdgeInsets.only(left: 10, bottom: 10),
                       padding: const EdgeInsets.symmetric(horizontal: 7),
-                      child: Text("$_currentImg/${imgList.length}"),
+                      child: Text("$_currentImg/"),
                     )
                   : Container()
             ]),
           ),
           SliverList(
             delegate: SliverChildListDelegate([
+              Container(
+                  padding: const EdgeInsets.only(top: 20, left: 25, right: 25),
+                  child: FutureBuilder(
+                    future: displayKost(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        var kost = snapshot.data;
+                        List<String> facilities =
+                            kost['facilities'].cast<String>();
+                        bool _hasP = kost['type'].contains('P');
+                        bool _hasL = kost['type'].contains('L');
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            //Judul
+                            Text('${kost['name']}'),
+
+                            //Jenis
+                            Row(
+                              children: [
+                                _hasL ? const TypeKost(type: 'L') : Container(),
+                                _hasP ? const TypeKost(type: 'P') : Container(),
+                              ],
+                            ),
+                            // Alamat
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_city_outlined,
+                                ),
+                                Expanded(
+                                  child: Text('${kost['address']}'),
+                                )
+                              ],
+                            ),
+                            Divider(),
+
+                            // Fasilitas
+                            Container(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Fasilitas"),
+                                  Column(
+                                    children: facilities
+                                        .map((facility) => Row(children: [
+                                              Icon(Icons.check_circle_outline),
+                                              Text(facility)
+                                            ]))
+                                        .toList(),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Placeholder(
+                              fallbackHeight: 30,
+                            ),
+                            Placeholder(
+                              fallbackHeight: 50,
+                            ),
+                            Placeholder(fallbackHeight: 40),
+                            Placeholder(fallbackHeight: 20),
+                            Placeholder(fallbackHeight: 60),
+                            Placeholder(fallbackHeight: 20),
+                            Placeholder(fallbackHeight: 50),
+                            Placeholder(fallbackHeight: 60)
+                          ],
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text("Something went wrong");
+                      } else {
+                        return CircularProgressIndicator();
+                      }
+                    },
+                  )),
               FutureBuilder(
                 future: displayKost(),
                 builder: (context, snapshot) {
@@ -242,3 +311,24 @@ class _DetailKostState extends State<DetailKost> {
     );
   }
 }
+
+class TypeKost extends StatelessWidget {
+  const TypeKost({super.key, required this.type});
+  final String type;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
+          border: Border.all(
+              width: 1, color: type == 'P' ? Colors.red : Colors.blue)),
+      child: Text(
+        type == 'P' ? 'Wanita' : 'Pria',
+        style: TextStyle(color: type == 'P' ? Colors.red : Colors.blue),
+      ),
+    );
+  }
+}
+
+// ignore: must_be_immutable
