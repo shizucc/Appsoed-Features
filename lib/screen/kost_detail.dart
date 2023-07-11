@@ -157,9 +157,9 @@ class _DetailKostState extends State<DetailKost> {
                               future: displayKost(),
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
-                                  // final List<String> images =
-                                  //     snapshot.data['images'];
-                                  // print(images);
+                                  final img = snapshot.data['images'];
+                                  final List images =
+                                      img.map((e) => e.toString()).toList();
                                   return CarouselSlider(
                                     options: CarouselOptions(
                                         height: height,
@@ -172,7 +172,7 @@ class _DetailKostState extends State<DetailKost> {
                                         }
                                         // autoPlay: false,
                                         ),
-                                    items: imgList
+                                    items: images
                                         .map((item) => Container(
                                               child: Center(
                                                   child: Image.network(
@@ -186,7 +186,7 @@ class _DetailKostState extends State<DetailKost> {
                                 } else if (snapshot.hasError) {
                                   return const Text("Something went wrong");
                                 } else {
-                                  return CircularProgressIndicator();
+                                  return const CircularProgressIndicator();
                                 }
                               });
                         },
