@@ -376,7 +376,18 @@ class _DetailKostState extends State<DetailKost> {
                           ],
                         );
                       } else if (snapshot.hasError) {
-                        return const Text("Something went wrong");
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: Image.asset("assets/images/error.jpg")),
+                            const Text(
+                              "Terjadi Kesalahan",
+                              style: TextStyle(fontSize: 20),
+                            )
+                          ],
+                        );
                       } else {
                         return const ShimmerArea();
                       }
