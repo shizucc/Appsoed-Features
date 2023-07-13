@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:intl/intl.dart';
 import 'dart:convert';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 
 Map<String, dynamic> dataKost = {
@@ -28,16 +29,29 @@ Map<String, dynamic> dataKost = {
     "Music 24 Jam"
   ],
   "location": "Kode apalah yang ada di google maps",
-  "price_start": 4000000,
+  "price_start_month": 4000000,
+  "price_start_year": 40000000,
   "owner": "081390410971"
 };
 
 Future<dynamic> getKost() async {
-  final response = await http.get(Uri.parse("http://10.0.2.2:8000/kosts/2"));
+  final response = await http.get(Uri.parse("http://10.0.2.2:8000/kosts/9"));
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
   } else {
     throw Exception("Something went wrong");
+  }
+}
+
+// Untuk Mengubah harga menjadi format rupiah
+class CurrencyFormat {
+  static String convertToIdr(dynamic number, int decimalDigit) {
+    NumberFormat currencyFormatter = NumberFormat.currency(
+      locale: 'id',
+      symbol: 'Rp. ',
+      decimalDigits: decimalDigit,
+    );
+    return currencyFormatter.format(number);
   }
 }
 
@@ -51,24 +65,9 @@ class LocationKost extends StatefulWidget {
 }
 
 class _LocationKostState extends State<LocationKost> {
-  Future<List<double>> getLocation() async {
-    List<Location> locations = await locationFromAddress(widget.url);
-    if (locations.isNotEmpty) {
-      Location location = locations.first;
-      double latitude = location.latitude;
-      double longitude = location.longitude;
-      return [latitude, longitude];
-    } else {
-      return [];
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    print(getLocation());
-    return Container(
-      child: Text("Ini adalah bagian lokasis"),
-    );
+    return const Text("Ini adalah bagian lokasis");
   }
 }
 
@@ -125,7 +124,6 @@ class _DetailKostState extends State<DetailKost> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       body: CustomScrollView(
         controller: _scrollController,
@@ -136,14 +134,12 @@ class _DetailKostState extends State<DetailKost> {
                     future: displayKost(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        // Check the received data
                         final name = snapshot.data['name'];
                         return Text(name);
                       } else if (snapshot.hasError) {
-                        // print(snapshot.error); // Check for any errors
-                        return const Text("Failed");
+                        return Container();
                       } else {
-                        return const CircularProgressIndicator(); // Placeholder while loading
+                        return Container(); // Placeholder while loading
                       }
                     })
                 // Text(
@@ -199,20 +195,26 @@ class _DetailKostState extends State<DetailKost> {
                                         // autoPlay: false,
                                         ),
                                     items: images
-                                        .map((item) => Container(
-                                              child: Center(
-                                                  child: Image.network(
-                                                item,
-                                                fit: BoxFit.cover,
-                                                height: height,
-                                              )),
-                                            ))
+                                        .map((item) => Center(
+                                                child: Image.network(
+                                              item,
+                                              fit: BoxFit.cover,
+                                              height: height,
+                                            )))
                                         .toList(),
                                   );
                                 } else if (snapshot.hasError) {
-                                  return const Text("Something went wrong");
+                                  return Container();
                                 } else {
-                                  return const CircularProgressIndicator();
+                                  return Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.grey.shade100,
+                                      child: Container(
+                                        width: 600,
+                                        height: 300,
+                                        decoration: const BoxDecoration(
+                                            color: Colors.black),
+                                      ));
                                 }
                               });
                         },
@@ -220,13 +222,26 @@ class _DetailKostState extends State<DetailKost> {
                     ]),
               ),
               _appBarState == AppBarState.expanded
-                  ? Container(
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(5)),
-                      margin: const EdgeInsets.only(left: 10, bottom: 10),
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
-                      child: Text("$_currentImg/"),
+                  ? FutureBuilder(
+                      future: displayKost(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          var imgLength = snapshot.data['images'].length;
+                          return Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5)),
+                              margin:
+                                  const EdgeInsets.only(left: 10, bottom: 10),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 7),
+                              child: Text("${_currentImg}" + "/${imgLength}"));
+                        } else if (snapshot.hasError) {
+                          return Container();
+                        } else {
+                          return Container();
+                        }
+                      },
                     )
                   : Container()
             ]),
@@ -334,14 +349,14 @@ class _DetailKostState extends State<DetailKost> {
                               ),
                             ),
                             // Lokasi
-                            SizedBox(
+                            const SizedBox(
                               height: 10,
                             ),
                             Container(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     "Lokasi",
                                     style: TextStyle(fontSize: 18),
                                   ),
@@ -354,56 +369,96 @@ class _DetailKostState extends State<DetailKost> {
                             const Placeholder(
                               fallbackHeight: 30,
                             ),
-                            const Placeholder(
-                              fallbackHeight: 50,
-                            ),
-                            const Placeholder(fallbackHeight: 40),
-                            const Placeholder(fallbackHeight: 20),
-                            const Placeholder(fallbackHeight: 60),
-                            const Placeholder(fallbackHeight: 20),
-                            const Placeholder(fallbackHeight: 50),
-                            const Placeholder(fallbackHeight: 60)
+
+                            Container(
+                                // Ini dipin di bawah layar
+                                )
                           ],
                         );
                       } else if (snapshot.hasError) {
                         return const Text("Something went wrong");
                       } else {
-                        return const CircularProgressIndicator();
+                        return const ShimmerArea();
                       }
                     },
                   )),
-              FutureBuilder(
-                future: displayKost(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    // Check the received data
-                    return Text("${snapshot.data}");
-                  } else if (snapshot.hasError) {
-                    print(snapshot.error); // Check for any errors
-                    return const Text("Failed");
-                  } else {
-                    return const CircularProgressIndicator(); // Placeholder while loading
-                  }
-                },
-              ),
-
-              // Disini kasih nama kost dan detail lainya
-              const Placeholder(
-                fallbackHeight: 600,
-                color: Colors.red,
-              ),
-              const Placeholder(
-                fallbackHeight: 600,
-                color: Colors.blue,
-              ),
-              const Placeholder(
-                fallbackHeight: 600,
-                color: Colors.green,
-              ),
             ]),
-          )
+          ),
         ],
       ),
+      bottomNavigationBar: BottomAppBar(
+          height: 90,
+          elevation: 0,
+          child: FutureBuilder(
+            future: displayKost(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                bool hasPriceMonth = snapshot.data['price_start_month'] != null;
+                bool hasPriceYear = snapshot.data['price_start_year'] != null;
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Mulai dari :",
+                            style: TextStyle(fontSize: 17),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                hasPriceMonth
+                                    ? Text(
+                                        '${CurrencyFormat.convertToIdr(snapshot.data['price_start_month'], 0)} /bulan',
+                                        style: const TextStyle(
+                                            fontSize: 15,
+                                            color: Color.fromRGBO(
+                                                253, 183, 49, 1)),
+                                      )
+                                    : Container(),
+                                hasPriceYear
+                                    ? Text(
+                                        '${CurrencyFormat.convertToIdr(snapshot.data['price_start_year'], 0)} /tahun',
+                                        style: const TextStyle(
+                                            fontSize: 15,
+                                            color: Color.fromRGBO(
+                                                253, 183, 49, 1)),
+                                      )
+                                    : Container(),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          decoration: const BoxDecoration(
+                            color: Color.fromRGBO(253, 183, 49, 1),
+                          ),
+                          child: const Text(
+                            "Hubungi Pemilik",
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white),
+                          )),
+                    ),
+                  ],
+                );
+              } else if (snapshot.hasError) {
+                return Container();
+              } else {
+                return const ShimmerBottom();
+              }
+            },
+          )),
     );
   }
 }
@@ -413,9 +468,8 @@ class TypeKost extends StatelessWidget {
   final String type;
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    print(screenWidth);
     return Container(
+      margin: const EdgeInsets.only(right: 10),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
       decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -432,4 +486,203 @@ class TypeKost extends StatelessWidget {
   }
 }
 
-// ignore: must_be_immutable
+class ShimmerContainer extends StatelessWidget {
+  const ShimmerContainer(
+      {super.key, required this.width, required this.height});
+  final double width;
+  final double height;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.black, borderRadius: BorderRadius.circular(20)),
+      width: width,
+      height: height,
+    );
+  }
+}
+
+class ShimmerArea extends StatelessWidget {
+  const ShimmerArea({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+        baseColor: Colors.grey.shade300,
+        highlightColor: Colors.grey.shade100,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const ShimmerContainer(width: 200, height: 25),
+            const SizedBox(
+              height: 10,
+            ),
+            //Jenis
+            Row(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(10)),
+                  width: 50,
+                  height: 20,
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(10)),
+                  width: 50,
+                  height: 20,
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            // // Alamat
+            Row(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(10)),
+                  width: 60,
+                  height: 60,
+                ),
+                const SizedBox(
+                  width: 15,
+                ),
+                const Expanded(
+                    child: Column(children: [
+                  ShimmerContainer(
+                    width: 300,
+                    height: 15,
+                  ),
+                  SizedBox(
+                    height: 7,
+                  ),
+                  ShimmerContainer(
+                    width: 300,
+                    height: 15,
+                  ),
+                  SizedBox(
+                    height: 7,
+                  ),
+                  ShimmerContainer(
+                    width: 300,
+                    height: 15,
+                  )
+                ]))
+              ],
+            ),
+            const Divider(),
+
+            // // Fasilitas
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerContainer(
+                  height: 17,
+                  width: 80,
+                ),
+                SizedBox(
+                  height: 15,
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: 10),
+                  child: Column(children: [
+                    ShimmerContainer(width: 120, height: 12),
+                    SizedBox(
+                      height: 7,
+                    ),
+                    ShimmerContainer(width: 120, height: 12),
+                    SizedBox(
+                      height: 7,
+                    ),
+                    ShimmerContainer(width: 120, height: 12),
+                    SizedBox(
+                      height: 7,
+                    ),
+                    ShimmerContainer(width: 120, height: 12)
+                  ]),
+                )
+              ],
+            ),
+            // // Lokasi
+            const SizedBox(
+              height: 10,
+            ),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerContainer(
+                  height: 17,
+                  width: 80,
+                ),
+                SizedBox(
+                  height: 15,
+                ),
+                Center(
+                    child: ShimmerContainer(
+                  height: 150,
+                  width: 300,
+                ))
+              ],
+            ),
+          ],
+        ));
+  }
+}
+
+class ShimmerBottom extends StatelessWidget {
+  const ShimmerBottom({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: Row(
+        children: [
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerContainer(
+                  width: 100,
+                  height: 15,
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: EdgeInsets.only(left: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerContainer(
+                        width: 100,
+                        height: 15,
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              color: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: const ShimmerContainer(
+                width: 60,
+                height: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    ;
+  }
+}
