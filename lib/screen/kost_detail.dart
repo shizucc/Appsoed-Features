@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -37,6 +38,37 @@ Future<dynamic> getKost() async {
     return jsonDecode(response.body);
   } else {
     throw Exception("Something went wrong");
+  }
+}
+
+// ignore: must_be_immutable
+class LocationKost extends StatefulWidget {
+  LocationKost({super.key, required this.url});
+  final String url;
+  late List locs;
+  @override
+  State<LocationKost> createState() => _LocationKostState();
+}
+
+class _LocationKostState extends State<LocationKost> {
+  Future<List<double>> getLocation() async {
+    List<Location> locations = await locationFromAddress(widget.url);
+    if (locations.isNotEmpty) {
+      Location location = locations.first;
+      double latitude = location.latitude;
+      double longitude = location.longitude;
+      return [latitude, longitude];
+    } else {
+      return [];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print(getLocation());
+    return Container(
+      child: Text("Ini adalah bagian lokasis"),
+    );
   }
 }
 
@@ -93,6 +125,7 @@ class _DetailKostState extends State<DetailKost> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       body: CustomScrollView(
         controller: _scrollController,
@@ -107,10 +140,10 @@ class _DetailKostState extends State<DetailKost> {
                         final name = snapshot.data['name'];
                         return Text(name);
                       } else if (snapshot.hasError) {
-                        print(snapshot.error); // Check for any errors
-                        return Text("Failed");
+                        // print(snapshot.error); // Check for any errors
+                        return const Text("Failed");
                       } else {
-                        return CircularProgressIndicator(); // Placeholder while loading
+                        return const CircularProgressIndicator(); // Placeholder while loading
                       }
                     })
                 // Text(
@@ -209,70 +242,133 @@ class _DetailKostState extends State<DetailKost> {
                         var kost = snapshot.data;
                         List<String> facilities =
                             kost['facilities'].cast<String>();
-                        bool _hasP = kost['type'].contains('P');
-                        bool _hasL = kost['type'].contains('L');
+                        bool hasP = kost['type'].contains('P');
+                        bool hasL = kost['type'].contains('L');
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             //Judul
-                            Text('${kost['name']}'),
-
+                            Text(
+                              '${kost['name']}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w500, fontSize: 20),
+                            ),
+                            const SizedBox(
+                              height: 7,
+                            ),
                             //Jenis
                             Row(
                               children: [
-                                _hasL ? const TypeKost(type: 'L') : Container(),
-                                _hasP ? const TypeKost(type: 'P') : Container(),
+                                hasL ? const TypeKost(type: 'L') : Container(),
+                                hasP ? const TypeKost(type: 'P') : Container(),
                               ],
+                            ),
+                            const SizedBox(
+                              height: 5,
                             ),
                             // Alamat
                             Row(
                               children: [
-                                Icon(
-                                  Icons.location_city_outlined,
+                                const Icon(CupertinoIcons.placemark),
+                                const SizedBox(
+                                  width: 7,
                                 ),
                                 Expanded(
-                                  child: Text('${kost['address']}'),
+                                  child: Text(
+                                    '${kost['address']}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w300,
+                                        fontSize: 15),
+                                  ),
                                 )
                               ],
                             ),
-                            Divider(),
+                            const Divider(),
 
                             // Fasilitas
                             Container(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text("Fasilitas"),
-                                  Column(
-                                    children: facilities
-                                        .map((facility) => Row(children: [
-                                              Icon(Icons.check_circle_outline),
-                                              Text(facility)
-                                            ]))
-                                        .toList(),
+                                  const Text(
+                                    "Fasilitas",
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 10),
+                                    child: Column(
+                                      children: facilities
+                                          .map((facility) => Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 2),
+                                                child: Row(children: [
+                                                  Icon(
+                                                    Icons.circle,
+                                                    size: 5,
+                                                    color: Colors.black
+                                                        .withOpacity(0.8),
+                                                  ),
+                                                  const SizedBox(
+                                                    width: 7,
+                                                  ),
+                                                  Text(
+                                                    facility,
+                                                    style: TextStyle(
+                                                      color: Colors.black
+                                                          .withOpacity(0.8),
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.w300,
+                                                    ),
+                                                  ),
+                                                ]),
+                                              ))
+                                          .toList(),
+                                    ),
                                   )
                                 ],
                               ),
                             ),
-                            Placeholder(
+                            // Lokasi
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Container(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Lokasi",
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                  LocationKost(
+                                      url:
+                                          "https://goo.gl/maps/DeVCuD4rCST1azSx6")
+                                ],
+                              ),
+                            ),
+                            const Placeholder(
                               fallbackHeight: 30,
                             ),
-                            Placeholder(
+                            const Placeholder(
                               fallbackHeight: 50,
                             ),
-                            Placeholder(fallbackHeight: 40),
-                            Placeholder(fallbackHeight: 20),
-                            Placeholder(fallbackHeight: 60),
-                            Placeholder(fallbackHeight: 20),
-                            Placeholder(fallbackHeight: 50),
-                            Placeholder(fallbackHeight: 60)
+                            const Placeholder(fallbackHeight: 40),
+                            const Placeholder(fallbackHeight: 20),
+                            const Placeholder(fallbackHeight: 60),
+                            const Placeholder(fallbackHeight: 20),
+                            const Placeholder(fallbackHeight: 50),
+                            const Placeholder(fallbackHeight: 60)
                           ],
                         );
                       } else if (snapshot.hasError) {
-                        return Text("Something went wrong");
+                        return const Text("Something went wrong");
                       } else {
-                        return CircularProgressIndicator();
+                        return const CircularProgressIndicator();
                       }
                     },
                   )),
@@ -284,9 +380,9 @@ class _DetailKostState extends State<DetailKost> {
                     return Text("${snapshot.data}");
                   } else if (snapshot.hasError) {
                     print(snapshot.error); // Check for any errors
-                    return Text("Failed");
+                    return const Text("Failed");
                   } else {
-                    return CircularProgressIndicator(); // Placeholder while loading
+                    return const CircularProgressIndicator(); // Placeholder while loading
                   }
                 },
               ),
@@ -317,6 +413,8 @@ class TypeKost extends StatelessWidget {
   final String type;
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    print(screenWidth);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
       decoration: BoxDecoration(
@@ -325,7 +423,10 @@ class TypeKost extends StatelessWidget {
               width: 1, color: type == 'P' ? Colors.red : Colors.blue)),
       child: Text(
         type == 'P' ? 'Wanita' : 'Pria',
-        style: TextStyle(color: type == 'P' ? Colors.red : Colors.blue),
+        style: TextStyle(
+            color: type == 'P' ? Colors.red : Colors.blue,
+            fontWeight: FontWeight.w300,
+            fontSize: 14),
       ),
     );
   }
