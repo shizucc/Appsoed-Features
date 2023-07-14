@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screen/kost_detail.dart';
+import 'screen/kost_list.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const DetailKost(id: "12"),
+      home: const ListKost(),
     );
   }
 }
