@@ -1,57 +1,97 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-class DaftarRumah extends StatefulWidget {
+class ListKost extends StatefulWidget {
+  const ListKost({Key? key});
+
   @override
-  _DaftarRumahState createState() => _DaftarRumahState();
+  State<ListKost> createState() => _ListKostState();
 }
 
-class _DaftarRumahState extends State<DaftarRumah> {
-  List<dynamic> rumahList = [];
-
-  @override
-  void initState() {
-    super.initState();
-    fetchData();
-  }
-
-  Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('https://api.example.com/rumah'));
-
-    if (response.statusCode == 200) {
-      setState(() {
-        rumahList = jsonDecode(response.body);
-      });
-    } else {
-      throw Exception('Gagal mengambil data dari API');
-    }
-  }
+class _ListKostState extends State<ListKost> {
+  final List<String> kostList = [
+    'Kost A',
+    'Kost B',
+    'Kost C',
+    'Kost D',
+    'Kost E',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Daftar Rumah'),
+        title: const Text('List Kost'),
       ),
-      body: CustomScrollView(
-        slivers: <Widget>[
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                // Mengakses data rumah pada indeks tertentu
-                dynamic rumah = rumahList[index];
-
-                return ListTile(
-                  title: Text(rumah['nama']),
-                  subtitle: Text(rumah['alamat']),
-                  // Tambahkan informasi lain yang kamu inginkan
-                );
-              },
-              childCount: rumahList.length,
+      body: GridView.count(
+        crossAxisCount: 2,
+        childAspectRatio: 0.7, // sesuaikan dengan proporsi gambar Anda
+        children: List.generate(kostList.length, (index) {
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => KostDetailPage(kostList[index]),
+                ),
+              );
+            },
+            child: Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Image.network(
+                      'https://example.com/gambar-kost-${index + 1}.jpg', // ganti dengan URL gambar kost sesuai kebutuhan
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          kostList[index],
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4.0),
+                        const Text(
+                          'Alamat Kost',
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class KostDetailPage extends StatelessWidget {
+  final String kostName;
+
+  KostDetailPage(this.kostName);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detail Kost'),
+      ),
+      body: Center(
+        child: Text('Detail Kost: $kostName'),
       ),
     );
   }
