@@ -59,7 +59,7 @@ class _LocationKostState extends State<LocationKost> {
 // print(runtimeType())
 class DetailKost extends StatefulWidget {
   const DetailKost({super.key, required this.id});
-  final String id;
+  final dynamic id;
 
   @override
   State<DetailKost> createState() => _DetailKostState();
@@ -132,6 +132,7 @@ class _DetailKostState extends State<DetailKost> {
               pinned: true,
               snap: false,
               floating: false,
+              stretch: true,
               leading: Container(
                 margin: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(

@@ -1,9 +1,8 @@
+import 'package:appsoed_features/screen/kost_detail.dart.';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:appsoed_features/screen/kost_detail.dart'
-    show TypeKost, CurrencyFormat;
 
 Future<dynamic> getKosts() async {
   List<Map<String, dynamic>> result = [];
@@ -241,6 +240,7 @@ class Kosts extends StatelessWidget {
         runSpacing: 30,
         children: kosts.map((kost) {
           return Kost(
+            id: kost['id'],
             name: kost['name'],
             images: kost['images'],
             region: kost['region'],
@@ -256,6 +256,7 @@ class Kosts extends StatelessWidget {
 class Kost extends StatelessWidget {
   const Kost(
       {super.key,
+      required this.id,
       required this.name,
       required this.images,
       required this.region,
@@ -263,6 +264,7 @@ class Kost extends StatelessWidget {
       required this.priceStartYear,
       required this.types});
 
+  final dynamic id;
   final String name;
   final List images;
   final String region;
@@ -278,164 +280,107 @@ class Kost extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(15),
-      child: Container(
-        color: Colors.white,
-        // padding: const EdgeInsets.all(20),
-        width: MediaQuery.of(context).size.width,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-              child: Image.network(images[0])),
-          const SizedBox(
-            height: 5,
-          ),
-          Container(
-            padding: EdgeInsets.only(bottom: 20, left: 15, right: 15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(fontSize: 22),
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Container(
-                          child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  CupertinoIcons.placemark,
-                                  color: Color.fromRGBO(0, 0, 0, 0.5),
-                                ),
-                                Text(
-                                  region,
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w300,
-                                      color: Color.fromRGBO(0, 0, 0, 0.5)),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          Wrap(
-                            runSpacing: 7,
-                            children: [
-                              types.contains('L')
-                                  ? const TypeKost(type: "L")
-                                  : Container(),
-                              types.contains('P')
-                                  ? const TypeKost(type: "P")
-                                  : Container(),
-                            ],
-                          )
-                        ],
-                      )),
-                    ),
-                    Container(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            hasPriceMonth
-                                ? Text(
-                                    '${CurrencyFormat.convertToIdr(priceStartMonth, 0)}/bln',
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Color.fromRGBO(0, 0, 0, 0.7),
-                                        fontWeight: FontWeight.w300),
-                                  )
-                                : Container(),
-                            hasPriceYear
-                                ? Text(
-                                    '${CurrencyFormat.convertToIdr(priceStartYear, 0)}/thn',
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Color.fromRGBO(0, 0, 0, 0.7),
-                                        fontWeight: FontWeight.w300))
-                                : Container()
-                          ]),
-                    )
-                  ],
-                ),
-              ],
+      child: InkWell(
+        onTap: () => {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => DetailKost(id: id)))
+        },
+        child: Container(
+          color: Colors.white,
+          // padding: const EdgeInsets.all(20),
+          width: MediaQuery.of(context).size.width,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(10)),
+                child: Image.network(images[0])),
+            const SizedBox(
+              height: 5,
             ),
-          ),
-        ]),
-      ),
-    );
-  }
-}
-
-class MyList extends StatelessWidget {
-  const MyList({
-    super.key,
-    required this.kostList,
-  });
-
-  final List<String> kostList;
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      childAspectRatio: 0.7, // sesuaikan dengan proporsi gambar Anda
-      children: List.generate(kostList.length, (index) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => KostDetailPage(kostList[index]),
-              ),
-            );
-          },
-          child: Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Image.network(
-                    'https://example.com/gambar-kost-${index + 1}.jpg', // ganti dengan URL gambar kost sesuai kebutuhan
-                    fit: BoxFit.cover,
+            Container(
+              padding: const EdgeInsets.only(bottom: 20, left: 15, right: 15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(fontSize: 22),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        kostList[index],
-                        style: const TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Expanded(
+                        child: Container(
+                            child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    CupertinoIcons.placemark,
+                                    color: Color.fromRGBO(0, 0, 0, 0.5),
+                                  ),
+                                  Text(
+                                    region,
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w300,
+                                        color: Color.fromRGBO(0, 0, 0, 0.5)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            Wrap(
+                              runSpacing: 7,
+                              children: [
+                                types.contains('L')
+                                    ? const TypeKost(type: "L")
+                                    : Container(),
+                                types.contains('P')
+                                    ? const TypeKost(type: "P")
+                                    : Container(),
+                              ],
+                            )
+                          ],
+                        )),
                       ),
-                      const SizedBox(height: 4.0),
-                      const Text(
-                        'Alamat Kost',
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
+                      Container(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              hasPriceMonth
+                                  ? Text(
+                                      '${CurrencyFormat.convertToIdr(priceStartMonth, 0)}/bln',
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Color.fromRGBO(0, 0, 0, 0.7),
+                                          fontWeight: FontWeight.w300),
+                                    )
+                                  : Container(),
+                              hasPriceYear
+                                  ? Text(
+                                      '${CurrencyFormat.convertToIdr(priceStartYear, 0)}/thn',
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Color.fromRGBO(0, 0, 0, 0.7),
+                                          fontWeight: FontWeight.w300))
+                                  : Container()
+                            ]),
+                      )
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      }),
+          ]),
+        ),
+      ),
     );
   }
 }
