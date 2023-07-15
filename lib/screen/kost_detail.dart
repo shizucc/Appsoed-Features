@@ -2,18 +2,30 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 
 // Mengambil data dari API
 Future<dynamic> getKost(dynamic id) async {
-  final response = await http.get(Uri.parse("http://10.0.2.2:8000/kosts/9"));
+  final response = await http.get(Uri.parse("http://10.0.2.2:8000/kosts/$id"));
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
   } else {
     throw Exception("Something went wrong");
   }
+}
+
+void openWhatsApp(String owner, String name) async {
+  String phoneNumber = owner;
+  String message =
+      "Permisi, saya ingin bertanya ketersediaan kamar kost di $name";
+  final url = "https://wa.me/$phoneNumber?text=${Uri.parse(message)}";
+  // final url = 'https://google.com';
+  if (await canLaunchUrl(Uri.parse(url))) {
+    await launchUrl(Uri.parse(url));
+  } else {}
 }
 
 // Untuk Mengubah harga menjadi format rupiah
@@ -99,7 +111,6 @@ class _DetailKostState extends State<DetailKost> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: const Color.fromRGBO(241, 239, 239, 1),
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
@@ -117,10 +128,6 @@ class _DetailKostState extends State<DetailKost> {
                           return Container(); // Placeholder while loading
                         }
                       })
-                  // Text(
-                  //     "nama kost",
-                  //     style: const TextStyle(color: Colors.black),
-                  //   )
                   : Container(),
               pinned: true,
               snap: false,
@@ -132,12 +139,15 @@ class _DetailKostState extends State<DetailKost> {
                     color: _appBarState == AppBarState.expanded
                         ? const Color.fromARGB(255, 255, 255, 255)
                         : Colors.transparent),
-                child: Icon(
-                    size: 40,
-                    CupertinoIcons.back,
-                    color: _appBarState == AppBarState.expanded
-                        ? const Color.fromRGBO(255, 183, 49, 1)
-                        : Colors.black),
+                child: InkWell(
+                  onTap: () => {Navigator.pop(context)},
+                  child: Icon(
+                      size: 30,
+                      CupertinoIcons.back,
+                      color: _appBarState == AppBarState.expanded
+                          ? const Color.fromRGBO(255, 183, 49, 1)
+                          : Colors.black),
+                ),
               ),
               expandedHeight: 250,
               flexibleSpace:
@@ -163,6 +173,7 @@ class _DetailKostState extends State<DetailKost> {
                                           height: height,
                                           viewportFraction: 1.0,
                                           enlargeCenterPage: false,
+                                          initialPage: _currentImg - 1,
                                           onPageChanged: (index, reason) {
                                             setState(() {
                                               _currentImg = index + 1;
@@ -182,7 +193,7 @@ class _DetailKostState extends State<DetailKost> {
                                                                   images:
                                                                       images,
                                                                   currentImage:
-                                                                      1)));
+                                                                      _currentImg)));
                                                 },
                                                 child: Center(
                                                     child: Image.network(
@@ -217,16 +228,18 @@ class _DetailKostState extends State<DetailKost> {
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             var imgLength = snapshot.data['images'].length;
-                            return Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5)),
-                                margin:
-                                    const EdgeInsets.only(left: 10, bottom: 10),
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 7),
-                                child:
-                                    Text("${_currentImg}" + "/${imgLength}"));
+                            return ClipRRect(
+                              child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(5)),
+                                  margin: const EdgeInsets.only(
+                                      left: 10, bottom: 10),
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 7),
+                                  child:
+                                      Text("${_currentImg}" + "/${imgLength}")),
+                            );
                           } else if (snapshot.hasError) {
                             return Container();
                           } else {
@@ -364,7 +377,7 @@ class _DetailKostState extends State<DetailKost> {
                                 ),
                               ),
                               const Placeholder(
-                                fallbackHeight: 30,
+                                fallbackHeight: 400,
                               ),
                             ],
                           );
@@ -396,9 +409,9 @@ class _DetailKostState extends State<DetailKost> {
         decoration: BoxDecoration(boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 5,
-            blurRadius: 7,
-            offset: const Offset(0, 3),
+            spreadRadius: 4,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           )
         ]),
         child: BottomAppBar(
@@ -452,18 +465,22 @@ class _DetailKostState extends State<DetailKost> {
                       ),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            decoration: const BoxDecoration(
-                                color: Color.fromRGBO(253, 183, 49, 1)),
-                            child: const Text(
-                              "Hubungi Pemilik",
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white),
-                            )),
+                        child: InkWell(
+                          onTap: () => openWhatsApp(
+                              snapshot.data['owner'], snapshot.data['name']),
+                          child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              decoration: const BoxDecoration(
+                                  color: Color.fromRGBO(253, 183, 49, 1)),
+                              child: const Text(
+                                "Hubungi Pemilik",
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white),
+                              )),
+                        ),
                       ),
                     ],
                   );
@@ -518,16 +535,39 @@ class ViewImage extends StatefulWidget {
 class _ViewImageState extends State<ViewImage> {
   @override
   Widget build(BuildContext context) {
-    print(widget.currentImage);
-    print(widget.name);
-    print(widget.images);
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        leading: Icon(CupertinoIcons.back),
-        title: Text(widget.name),
+        backgroundColor: Colors.transparent,
+        leading: InkWell(
+            onTap: () => {Navigator.pop(context)},
+            child: const Icon(CupertinoIcons.back, color: Colors.white)),
+        title: Text(widget.name, style: const TextStyle(color: Colors.white)),
       ),
-      body: Column(mainAxisAlignment: MainAxisAlignment.center, children: []),
+      body: Center(
+        child: Builder(
+          builder: (context) {
+            final double height = MediaQuery.of(context).size.height;
+            return CarouselSlider(
+              options: CarouselOptions(
+                height: height,
+                viewportFraction: 1.0,
+                enlargeCenterPage: false,
+                initialPage: widget.currentImage - 1,
+              ),
+              items: widget.images
+                  .map((item) => Container(
+                        child: Center(
+                            child: Image.network(
+                          item,
+                          fit: BoxFit.cover,
+                        )),
+                      ))
+                  .toList(),
+            );
+          },
+        ),
+      ),
     );
   }
 }
