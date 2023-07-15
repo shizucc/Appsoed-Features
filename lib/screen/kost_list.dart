@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:appsoed_features/screen/kost_detail.dart'
+    show TypeKost, CurrencyFormat;
 
 Future<dynamic> getKosts() async {
   List<Map<String, dynamic>> result = [];
@@ -132,61 +134,47 @@ class _ListKostState extends State<ListKost> {
           SliverList(
               delegate: SliverChildListDelegate([
             Container(
-              color: _appBarState == AppBarState.expanded
-                  ? const Color.fromRGBO(241, 239, 239, 1)
-                  : Colors.white,
+              color: const Color.fromRGBO(241, 239, 239, 1),
               child: Stack(
                 children: [
                   Container(
                       color: _appBarState == AppBarState.expanded
                           ? const Color.fromRGBO(255, 183, 49, 1)
                           : Colors.transparent,
-                      height: 80),
+                      height: 60),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: Container(
                         alignment: Alignment.topCenter,
-                        padding: EdgeInsets.only(left: 10, right: 10),
+                        // padding: const EdgeInsets.only(left: 20, right: 20),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.white,
-                        ),
+                            borderRadius: BorderRadius.circular(20),
+                            color: _appBarState == AppBarState.expanded
+                                ? Colors.white
+                                : const Color.fromRGBO(241, 239, 239, 1)),
                         width: MediaQuery.of(context).size.width,
-                        height: 800,
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: Container(
-                                width: 40,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: _appBarState == AppBarState.expanded
-                                        ? const Color.fromRGBO(217, 217, 217, 1)
-                                        : Colors.transparent),
+                        child: Container(
+                          padding: EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 20),
+                                child: Container(
+                                  width: 40,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color:
+                                          _appBarState == AppBarState.expanded
+                                              ? const Color.fromRGBO(
+                                                  217, 217, 217, 1)
+                                              : Colors.transparent),
+                                ),
                               ),
-                            ),
-                            Wrap(
-                              runSpacing: 10,
-                              spacing: 10,
-                              children: [
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                                MyList2(),
-                              ],
-                            ),
-                            MyList3()
-                          ],
+                              const MyList3()
+                            ],
+                          ),
                         )),
                   )
                 ],
@@ -196,6 +184,15 @@ class _ListKostState extends State<ListKost> {
         ],
       ),
     );
+  }
+}
+
+class MyList4 extends StatelessWidget {
+  const MyList4({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
   }
 }
 
@@ -224,9 +221,9 @@ class MyList3 extends StatelessWidget {
           // print(snapshot.data[1]);
           return Kosts(kosts: snapshot.data);
         } else if (snapshot.hasError) {
-          return Text("Something went wrong");
+          return const Text("Something went wrong");
         } else {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         }
       },
     );
@@ -238,30 +235,142 @@ class Kosts extends StatelessWidget {
   final List<dynamic> kosts;
   @override
   Widget build(BuildContext context) {
-    print(kosts.runtimeType);
+    // print(kosts);
     return Wrap(
+        spacing: 10,
+        runSpacing: 30,
         children: kosts.map((kost) {
-      return Text("Hello");
-    }).toList());
+          return Kost(
+            name: kost['name'],
+            images: kost['images'],
+            region: kost['region'],
+            types: kost['type'],
+            priceStartMonth: kost['price_start_month'] ?? 0,
+            priceStartYear: kost['price_start_year'] ?? 0,
+          );
+        }).toList());
   }
 }
 
+// ignore: must_be_immutable
 class Kost extends StatelessWidget {
   const Kost(
       {super.key,
-      required this.image,
-      required this.location,
-      required this.prices,
+      required this.name,
+      required this.images,
+      required this.region,
+      required this.priceStartMonth,
+      required this.priceStartYear,
       required this.types});
-  final String image;
-  final String location;
-  final List<String> prices;
-  final List<String> types;
+
+  final String name;
+  final List images;
+  final String region;
+  final int priceStartMonth;
+  final int priceStartYear;
+  final List<dynamic> types;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 100,
-      child: Column(children: [Text("Hello"), Text("Jenis")]),
+    bool hasPriceMonth = priceStartMonth != 0 ? true : false;
+    bool hasPriceYear = priceStartYear != 0 ? true : false;
+    // var dump = priceStartMonth != 0 ? priceStartMonth : priceStartYear;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        color: Colors.white,
+        // padding: const EdgeInsets.all(20),
+        width: MediaQuery.of(context).size.width,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+              child: Image.network(images[0])),
+          const SizedBox(
+            height: 5,
+          ),
+          Container(
+            padding: EdgeInsets.only(bottom: 20, left: 15, right: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(fontSize: 22),
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Container(
+                          child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  CupertinoIcons.placemark,
+                                  color: Color.fromRGBO(0, 0, 0, 0.5),
+                                ),
+                                Text(
+                                  region,
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w300,
+                                      color: Color.fromRGBO(0, 0, 0, 0.5)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Wrap(
+                            runSpacing: 7,
+                            children: [
+                              types.contains('L')
+                                  ? const TypeKost(type: "L")
+                                  : Container(),
+                              types.contains('P')
+                                  ? const TypeKost(type: "P")
+                                  : Container(),
+                            ],
+                          )
+                        ],
+                      )),
+                    ),
+                    Container(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            hasPriceMonth
+                                ? Text(
+                                    '${CurrencyFormat.convertToIdr(priceStartMonth, 0)}/bln',
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Color.fromRGBO(0, 0, 0, 0.7),
+                                        fontWeight: FontWeight.w300),
+                                  )
+                                : Container(),
+                            hasPriceYear
+                                ? Text(
+                                    '${CurrencyFormat.convertToIdr(priceStartYear, 0)}/thn',
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Color.fromRGBO(0, 0, 0, 0.7),
+                                        fontWeight: FontWeight.w300))
+                                : Container()
+                          ]),
+                    )
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ]),
+      ),
     );
   }
 }
