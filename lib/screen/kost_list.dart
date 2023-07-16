@@ -1,6 +1,7 @@
 import 'package:appsoed_features/screen/kost_detail.dart.';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -171,7 +172,7 @@ class _ListKostState extends State<ListKost> {
                                               : Colors.transparent),
                                 ),
                               ),
-                              const MyList3()
+                              const KostDatas()
                             ],
                           ),
                         )),
@@ -186,30 +187,8 @@ class _ListKostState extends State<ListKost> {
   }
 }
 
-class MyList4 extends StatelessWidget {
-  const MyList4({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
-}
-
-class MyList2 extends StatelessWidget {
-  const MyList2({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 50,
-      height: 50,
-      color: Colors.red,
-    );
-  }
-}
-
-class MyList3 extends StatelessWidget {
-  const MyList3({super.key});
+class KostDatas extends StatelessWidget {
+  const KostDatas({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -222,9 +201,25 @@ class MyList3 extends StatelessWidget {
         } else if (snapshot.hasError) {
           return const Text("Something went wrong");
         } else {
-          return const CircularProgressIndicator();
+          return const KostsShimmer();
         }
       },
+    );
+  }
+}
+
+class KostsShimmer extends StatelessWidget {
+  const KostsShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: Container(
+        child: ShimmerContainer(
+            width: MediaQuery.of(context).size.width, height: 150),
+      ),
     );
   }
 }
@@ -234,7 +229,6 @@ class Kosts extends StatelessWidget {
   final List<dynamic> kosts;
   @override
   Widget build(BuildContext context) {
-    // print(kosts);
     return Wrap(
         spacing: 10,
         runSpacing: 30,
@@ -380,23 +374,6 @@ class Kost extends StatelessWidget {
             ),
           ]),
         ),
-      ),
-    );
-  }
-}
-
-class KostDetailPage extends StatelessWidget {
-  const KostDetailPage(this.kostName, {super.key});
-  final String kostName;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detail Kost'),
-      ),
-      body: Center(
-        child: Text('Detail Kost: $kostName'),
       ),
     );
   }
