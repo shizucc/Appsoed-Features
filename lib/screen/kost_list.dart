@@ -154,7 +154,7 @@ class _ListKostState extends State<ListKost> {
                                 : const Color.fromRGBO(241, 239, 239, 1)),
                         width: MediaQuery.of(context).size.width,
                         child: Container(
-                          padding: EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
                           child: Column(
                             children: [
                               Padding(
@@ -201,7 +201,15 @@ class KostDatas extends StatelessWidget {
         } else if (snapshot.hasError) {
           return const Text("Something went wrong");
         } else {
-          return const KostsShimmer();
+          return const Column(
+            children: [
+              KostsShimmer(),
+              const SizedBox(
+                height: 25,
+              ),
+              KostsShimmer()
+            ],
+          );
         }
       },
     );
@@ -216,9 +224,37 @@ class KostsShimmer extends StatelessWidget {
     return Shimmer.fromColors(
       baseColor: Colors.grey.shade300,
       highlightColor: Colors.grey.shade100,
-      child: Container(
-        child: ShimmerContainer(
-            width: MediaQuery.of(context).size.width, height: 150),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ShimmerContainer(
+              width: MediaQuery.of(context).size.width, height: 150),
+          const SizedBox(
+            height: 10,
+          ),
+          const ShimmerContainer(
+            width: 150,
+            height: 30,
+          ),
+          const SizedBox(height: 5),
+          const ShimmerContainer(height: 25, width: 120),
+          const SizedBox(height: 5),
+          const Row(children: [
+            ShimmerContainer(
+              height: 20,
+              width: 50,
+            ),
+            SizedBox(width: 10),
+            ShimmerContainer(
+              height: 20,
+              width: 50,
+            ),
+            SizedBox(
+              width: 20,
+            ),
+            Expanded(child: ShimmerContainer(width: 80, height: 20))
+          ])
+        ],
       ),
     );
   }
