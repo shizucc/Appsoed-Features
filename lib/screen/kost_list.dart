@@ -199,12 +199,20 @@ class KostDatas extends StatelessWidget {
           // print(snapshot.data[1]);
           return Kosts(kosts: snapshot.data);
         } else if (snapshot.hasError) {
-          return const Text("Something went wrong");
+          return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: Image.asset("assets/images/error.png")),
+            const Text(
+              "Terjadi Kesalahan",
+              style: TextStyle(fontSize: 20),
+            )
+          ]);
         } else {
           return const Column(
             children: [
               KostsShimmer(),
-              const SizedBox(
+              SizedBox(
                 height: 25,
               ),
               KostsShimmer()
@@ -384,6 +392,7 @@ class Kost extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.end,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
+                              const Text("Mulai dari "),
                               hasPriceMonth
                                   ? Text(
                                       '${CurrencyFormat.convertToIdr(priceStartMonth, 0)}/bln',
