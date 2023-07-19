@@ -17,11 +17,18 @@ Future<dynamic> getKost(dynamic id) async {
   }
 }
 
+void openMap(String url) async {
+  final uri = Uri.parse(url);
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri);
+  } else {}
+}
+
 void openWhatsApp(String owner, String name) async {
   String phoneNumber = owner;
   String message =
       "Permisi, saya ingin bertanya ketersediaan kamar kost di $name";
-  final url = "https://wa.me/$phoneNumber?text=${Uri.parse(message)}";
+  final url = "https://wa.me/$phoneNumber?text=$message}";
   // final url = 'https://google.com';
   if (await canLaunchUrl(Uri.parse(url))) {
     await launchUrl(Uri.parse(url));
@@ -238,8 +245,7 @@ class _DetailKostState extends State<DetailKost> {
                                       left: 10, bottom: 10),
                                   padding:
                                       const EdgeInsets.symmetric(horizontal: 7),
-                                  child:
-                                      Text("${_currentImg}" + "/${imgLength}")),
+                                  child: Text("$_currentImg" + "/$imgLength")),
                             );
                           } else if (snapshot.hasError) {
                             return Container();
@@ -266,6 +272,8 @@ class _DetailKostState extends State<DetailKost> {
                           bool hasP = kost['type'].contains('P');
                           bool hasL = kost['type'].contains('L');
 
+                          bool hasLocation =
+                              kost['location'] == null ? false : true;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -341,14 +349,16 @@ class _DetailKostState extends State<DetailKost> {
                                                     const SizedBox(
                                                       width: 7,
                                                     ),
-                                                    Text(
-                                                      facility,
-                                                      style: TextStyle(
-                                                        color: Colors.black
-                                                            .withOpacity(0.8),
-                                                        fontSize: 15,
-                                                        fontWeight:
-                                                            FontWeight.w300,
+                                                    Expanded(
+                                                      child: Text(
+                                                        facility,
+                                                        style: TextStyle(
+                                                          color: Colors.black
+                                                              .withOpacity(0.8),
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w300,
+                                                        ),
                                                       ),
                                                     ),
                                                   ]),
@@ -363,23 +373,43 @@ class _DetailKostState extends State<DetailKost> {
                               const SizedBox(
                                 height: 10,
                               ),
-                              Container(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Lokasi",
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                    LocationKost(
-                                        url:
-                                            "https://goo.gl/maps/DeVCuD4rCST1azSx6")
-                                  ],
-                                ),
-                              ),
-                              const Placeholder(
-                                fallbackHeight: 400,
-                              ),
+                              hasLocation
+                                  ? Container(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            "Lokasi",
+                                            style: TextStyle(fontSize: 18),
+                                          ),
+                                          const SizedBox(
+                                            height: 10,
+                                          ),
+                                          InkWell(
+                                            onTap: () =>
+                                                {openMap(kost['location'])},
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 15),
+                                              child: Container(
+                                                alignment: Alignment.center,
+                                                height: 150,
+                                                decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20)),
+                                                child: Image.asset(
+                                                  'assets/images/location_kost.png',
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    )
+                                  : Container(),
                             ],
                           );
                         } else if (snapshot.hasError) {

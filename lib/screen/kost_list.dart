@@ -101,11 +101,14 @@ class _ListKostState extends State<ListKost> {
                   decoration: const BoxDecoration(
                       color: Color.fromRGBO(255, 183, 49, 1)),
                   child: const Padding(
-                    padding: EdgeInsets.only(left: 20, bottom: 0),
+                    padding: EdgeInsets.only(left: 20, top: 0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        SizedBox(
+                          height: 20,
+                        ),
                         Text(
                           "Lagi Cari Kos - Kosan ?",
                           style: TextStyle(
