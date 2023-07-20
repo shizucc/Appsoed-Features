@@ -286,14 +286,10 @@ class Kosts extends StatelessWidget {
           return Kost(
             id: kost['id_kos'],
             name: kost['nama_kos'],
-            // images: kost['images'] ?? [],
             images: const [],
             region: kost['region_kos'],
             types: kost['type_kos'],
-            // priceStartMonth: kost['price_start_month'] ?? 0,
-            priceStartMonth: 0,
-            // priceStartYear: kost['price_start_year'] ?? 0,
-            priceStartYear: 0,
+            priceStart: kost['price_start'] ?? 0,
           );
         }).toList());
   }
@@ -307,23 +303,21 @@ class Kost extends StatelessWidget {
       required this.name,
       required this.images,
       required this.region,
-      required this.priceStartMonth,
-      required this.priceStartYear,
+      required this.priceStart,
       required this.types});
 
   final dynamic id;
   final String name;
   final List images;
   final String region;
-  final int priceStartMonth;
-  final int priceStartYear;
-  final List<dynamic> types;
+  final int priceStart;
+
+  final String types;
 
   @override
   Widget build(BuildContext context) {
-    bool hasPriceMonth = priceStartMonth != 0 ? true : false;
-    bool hasPriceYear = priceStartYear != 0 ? true : false;
-    bool hasImages = images.length > 0 ? true : false;
+    bool hasPrice = priceStart > 0 ? true : false;
+    bool hasImages = images.isNotEmpty ? true : false;
     // var dump = priceStartMonth != 0 ? priceStartMonth : priceStartYear;
 
     return ClipRRect(
@@ -344,7 +338,7 @@ class Kost extends StatelessWidget {
                   const BorderRadius.vertical(top: Radius.circular(10)),
               child: hasImages
                   ? Image.network(images[0])
-                  : Image.asset('asset/images/kost.jpg'),
+                  : Image.asset('assets/images/kost.jpg', fit: BoxFit.fill),
             ),
             const SizedBox(
               height: 5,
@@ -389,12 +383,15 @@ class Kost extends StatelessWidget {
                             Wrap(
                               runSpacing: 7,
                               children: [
-                                types.contains('L')
+                                types == 'L'
                                     ? const TypeKost(type: "L")
                                     : Container(),
-                                types.contains('P')
+                                types == 'P'
                                     ? const TypeKost(type: "P")
                                     : Container(),
+                                types == 'Campur'
+                                    ? const TypeKost(type: "Campur")
+                                    : Container()
                               ],
                             )
                           ],
@@ -406,23 +403,16 @@ class Kost extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               const Text("Mulai dari "),
-                              hasPriceMonth
+                              hasPrice
                                   ? Text(
-                                      '${CurrencyFormat.convertToIdr(priceStartMonth, 0)}/bln',
+                                      CurrencyFormat.convertToIdr(
+                                          priceStart, 0),
                                       style: const TextStyle(
                                           fontSize: 14,
                                           color: Color.fromRGBO(0, 0, 0, 0.7),
                                           fontWeight: FontWeight.w300),
                                     )
                                   : Container(),
-                              hasPriceYear
-                                  ? Text(
-                                      '${CurrencyFormat.convertToIdr(priceStartYear, 0)}/thn',
-                                      style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Color.fromRGBO(0, 0, 0, 0.7),
-                                          fontWeight: FontWeight.w300))
-                                  : Container()
                             ]),
                       )
                     ],

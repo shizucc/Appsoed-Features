@@ -536,21 +536,32 @@ class _DetailKostState extends State<DetailKost> {
 class TypeKost extends StatelessWidget {
   const TypeKost({super.key, required this.type});
   final String type;
+
   @override
   Widget build(BuildContext context) {
+    late String typeIn;
+    late Color color;
+    if (type.toLowerCase() == 'l') {
+      typeIn = 'Pria';
+      color = Colors.blue;
+    } else if (type.toLowerCase() == 'p') {
+      typeIn = 'Wanita';
+      color = Colors.red;
+    } else {
+      typeIn = 'Campur';
+      color = Colors.green;
+    }
+
     return Container(
       margin: const EdgeInsets.only(right: 10),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
       decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(10)),
-          border: Border.all(
-              width: 1, color: type == 'P' ? Colors.red : Colors.blue)),
+          border: Border.all(width: 1, color: color)),
       child: Text(
-        type == 'P' ? 'Wanita' : 'Pria',
-        style: TextStyle(
-            color: type == 'P' ? Colors.red : Colors.blue,
-            fontWeight: FontWeight.w300,
-            fontSize: 14),
+        typeIn,
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.w300, fontSize: 14),
       ),
     );
   }
