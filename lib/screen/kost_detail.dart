@@ -172,7 +172,11 @@ class _DetailKostState extends State<DetailKost> {
                                 future: displayKost(),
                                 builder: (context, snapshot) {
                                   if (snapshot.hasData) {
-                                    final img = snapshot.data['images'];
+                                    final img =
+                                        snapshot.data['images'].length != 0
+                                            ? snapshot.data['images']
+                                            : ['assets/images/kost.jpg'];
+
                                     final name = snapshot.data['name'];
                                     final List images =
                                         img.map((e) => e.toString()).toList();
@@ -235,7 +239,9 @@ class _DetailKostState extends State<DetailKost> {
                         future: displayKost(),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
-                            var imgLength = snapshot.data['images'].length;
+                            var imgLength = snapshot.data['images'].length != 0
+                                ? snapshot.data['images'].length
+                                : 1;
                             return ClipRRect(
                               child: Container(
                                   decoration: BoxDecoration(
