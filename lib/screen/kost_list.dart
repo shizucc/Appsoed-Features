@@ -202,7 +202,6 @@ class KostDatas extends StatelessWidget {
       future: getKosts(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          print(snapshot.data);
           return Kosts(kosts: snapshot.data);
         } else if (snapshot.hasError) {
           return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -288,7 +287,7 @@ class Kosts extends StatelessWidget {
             name: kost['nama_kos'],
             images: const [],
             region: kost['region_kos'],
-            types: kost['type_kos'],
+            types: kost['type_kos'].toLowerCase(),
             priceStart: kost['price_start'] ?? 0,
           );
         }).toList());
@@ -383,13 +382,13 @@ class Kost extends StatelessWidget {
                             Wrap(
                               runSpacing: 7,
                               children: [
-                                types == 'L'
+                                types == 'l'
                                     ? const TypeKost(type: "L")
                                     : Container(),
-                                types == 'P'
+                                types == 'p'
                                     ? const TypeKost(type: "P")
                                     : Container(),
-                                types == 'Campur'
+                                types == 'campur'
                                     ? const TypeKost(type: "Campur")
                                     : Container()
                               ],

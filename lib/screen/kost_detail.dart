@@ -9,9 +9,11 @@ import 'package:http/http.dart' as http;
 
 // Mengambil data dari API
 Future<dynamic> getKost(dynamic id) async {
-  final response = await http.get(Uri.parse("http://10.0.2.2:8000/kosts/$id"));
-  if (response.statusCode == 200) {
-    return jsonDecode(response.body);
+  final url = 'https://good-plum-dugong-wrap.cyclic.app/kos/${id}';
+  final response = await http.get(Uri.parse(url));
+  final datas = jsonDecode(response.body);
+  if (datas['status'] == 200) {
+    return datas['value'];
   } else {
     throw Exception("Something went wrong");
   }
@@ -172,14 +174,24 @@ class _DetailKostState extends State<DetailKost> {
                                 future: displayKost(),
                                 builder: (context, snapshot) {
                                   if (snapshot.hasData) {
-                                    final img =
-                                        snapshot.data['images'].length != 0
-                                            ? snapshot.data['images']
-                                            : ['assets/images/kost.jpg'];
+                                    // final imgDump = snapshot.data['galeri'];
+                                    // List<String> images = imgDump
+                                    //     .map<String>((imgData) =>
+                                    //         imgData['galeri'].toString())
+                                    //     .toList();
 
-                                    final name = snapshot.data['name'];
-                                    final List images =
-                                        img.map((e) => e.toString()).toList();
+                                    List<String> images = [
+                                      'assets/images/kost.jpg'
+                                    ];
+
+                                    // final img =
+                                    //     snapshot.data['images'].length != 0
+                                    //         ? snapshot.data['images']
+                                    //         : ['assets/images/kost.jpg'];
+
+                                    final name = snapshot.data['nama_kos'];
+                                    // final List images =
+                                    //     img.map((e) => e.toString()).toList();
                                     return CarouselSlider(
                                       options: CarouselOptions(
                                           height: height,
@@ -208,7 +220,7 @@ class _DetailKostState extends State<DetailKost> {
                                                                       _currentImg)));
                                                 },
                                                 child: Center(
-                                                    child: Image.network(
+                                                    child: Image.asset(
                                                   item,
                                                   fit: BoxFit.cover,
                                                   height: height,
@@ -239,9 +251,7 @@ class _DetailKostState extends State<DetailKost> {
                         future: displayKost(),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
-                            var imgLength = snapshot.data['images'].length != 0
-                                ? snapshot.data['images'].length
-                                : 1;
+                            var imgLength = 1;
                             return ClipRRect(
                               child: Container(
                                   decoration: BoxDecoration(
@@ -273,19 +283,27 @@ class _DetailKostState extends State<DetailKost> {
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           var kost = snapshot.data;
-                          List<String> facilities =
-                              kost['facilities'].cast<String>();
-                          bool hasP = kost['type'].contains('P');
-                          bool hasL = kost['type'].contains('L');
 
-                          bool hasLocation =
-                              kost['location'] == null ? false : true;
+                          final name = kost['nama_kos'];
+                          final type = kost['type_kos'].toLowerCase();
+                          final address = kost['alamat_kos'];
+                          final location = kost['lokasi_kos'] ?? '';
+                          final facilitiesDump = kost['fasilitas'] ?? [];
+
+                          // Convert JSON to array
+                          List<String> facilities = facilitiesDump
+                              .map<String>((fasilitas) =>
+                                  fasilitas['nama_fasilitas'].toString())
+                              .toList();
+
+                          bool hasLocation = location != '' ? true : false;
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               //Judul
                               Text(
-                                '${kost['name']}',
+                                '$name',
                                 style: const TextStyle(
                                     fontWeight: FontWeight.w500, fontSize: 20),
                               ),
@@ -295,11 +313,14 @@ class _DetailKostState extends State<DetailKost> {
                               //Jenis
                               Row(
                                 children: [
-                                  hasL
-                                      ? const TypeKost(type: 'L')
+                                  type == 'l'
+                                      ? const TypeKost(type: 'l')
                                       : Container(),
-                                  hasP
-                                      ? const TypeKost(type: 'P')
+                                  type == 'p'
+                                      ? const TypeKost(type: 'p')
+                                      : Container(),
+                                  type == 'campur'
+                                      ? const TypeKost(type: 'campur')
                                       : Container(),
                                 ],
                               ),
@@ -315,7 +336,7 @@ class _DetailKostState extends State<DetailKost> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      '${kost['address']}',
+                                      '$address',
                                       style: const TextStyle(
                                           fontWeight: FontWeight.w300,
                                           fontSize: 15),
@@ -393,8 +414,7 @@ class _DetailKostState extends State<DetailKost> {
                                             height: 10,
                                           ),
                                           InkWell(
-                                            onTap: () =>
-                                                {openMap(kost['location'])},
+                                            onTap: () => {openMap(location)},
                                             child: Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
@@ -458,9 +478,7 @@ class _DetailKostState extends State<DetailKost> {
               future: displayKost(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  bool hasPriceMonth =
-                      snapshot.data['price_start_month'] != null;
-                  bool hasPriceYear = snapshot.data['price_start_year'] != null;
+                  final price = snapshot.data['price_start'];
                   return Row(
                     children: [
                       Expanded(
@@ -472,24 +490,15 @@ class _DetailKostState extends State<DetailKost> {
                               style: TextStyle(fontSize: 17),
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(left: 10),
+                              padding: const EdgeInsets.only(left: 0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  hasPriceMonth
+                                  price != 0
                                       ? Text(
-                                          '${CurrencyFormat.convertToIdr(snapshot.data['price_start_month'], 0)} /bulan',
+                                          '${CurrencyFormat.convertToIdr(price, 0)}',
                                           style: const TextStyle(
-                                              fontSize: 15,
-                                              color: Color.fromRGBO(
-                                                  253, 183, 49, 1)),
-                                        )
-                                      : Container(),
-                                  hasPriceYear
-                                      ? Text(
-                                          '${CurrencyFormat.convertToIdr(snapshot.data['price_start_year'], 0)} /tahun',
-                                          style: const TextStyle(
-                                              fontSize: 15,
+                                              fontSize: 18,
                                               color: Color.fromRGBO(
                                                   253, 183, 49, 1)),
                                         )
@@ -606,7 +615,7 @@ class _ViewImageState extends State<ViewImage> {
               items: widget.images
                   .map((item) => Container(
                         child: Center(
-                            child: Image.network(
+                            child: Image.asset(
                           item,
                           fit: BoxFit.cover,
                         )),
