@@ -7,9 +7,12 @@ import 'package:http/http.dart' as http;
 
 Future<dynamic> getKosts() async {
   List<Map<String, dynamic>> result = [];
-  final response = await http.get(Uri.parse("http://10.0.2.2:8000/kosts"));
-  if (response.statusCode == 200) {
-    final List<dynamic> kosts = jsonDecode(response.body);
+  const url = 'https://good-plum-dugong-wrap.cyclic.app/kos';
+  final response = await http.get(Uri.parse(url));
+
+  final datas = jsonDecode(response.body);
+  if (datas['status'] == 200) {
+    final List<dynamic> kosts = datas['value'];
     result = kosts.map((kost) => Map<String, dynamic>.from(kost)).toList();
     return result;
   } else {
@@ -199,7 +202,6 @@ class KostDatas extends StatelessWidget {
       future: getKosts(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          // print(snapshot.data[1]);
           return Kosts(kosts: snapshot.data);
         } else if (snapshot.hasError) {
           return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -281,13 +283,12 @@ class Kosts extends StatelessWidget {
         runSpacing: 30,
         children: kosts.map((kost) {
           return Kost(
-            id: kost['id'],
-            name: kost['name'],
-            images: kost['images'],
-            region: kost['region'],
-            types: kost['type'],
-            priceStartMonth: kost['price_start_month'] ?? 0,
-            priceStartYear: kost['price_start_year'] ?? 0,
+            id: kost['id_kos'],
+            name: kost['nama_kos'],
+            images: const [],
+            region: kost['region_kos'],
+            types: kost['type_kos'].toLowerCase(),
+            priceStart: kost['price_start'] ?? 0,
           );
         }).toList());
   }
@@ -301,22 +302,21 @@ class Kost extends StatelessWidget {
       required this.name,
       required this.images,
       required this.region,
-      required this.priceStartMonth,
-      required this.priceStartYear,
+      required this.priceStart,
       required this.types});
 
   final dynamic id;
   final String name;
   final List images;
   final String region;
-  final int priceStartMonth;
-  final int priceStartYear;
-  final List<dynamic> types;
+  final int priceStart;
+
+  final String types;
 
   @override
   Widget build(BuildContext context) {
-    bool hasPriceMonth = priceStartMonth != 0 ? true : false;
-    bool hasPriceYear = priceStartYear != 0 ? true : false;
+    bool hasPrice = priceStart > 0 ? true : false;
+    bool hasImages = images.isNotEmpty ? true : false;
     // var dump = priceStartMonth != 0 ? priceStartMonth : priceStartYear;
 
     return ClipRRect(
@@ -333,9 +333,12 @@ class Kost extends StatelessWidget {
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(10)),
-                child: Image.network(images[0])),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(10)),
+              child: hasImages
+                  ? Image.network(images[0])
+                  : Image.asset('assets/images/kost.jpg', fit: BoxFit.fill),
+            ),
             const SizedBox(
               height: 5,
             ),
@@ -379,12 +382,15 @@ class Kost extends StatelessWidget {
                             Wrap(
                               runSpacing: 7,
                               children: [
-                                types.contains('L')
+                                types == 'l'
                                     ? const TypeKost(type: "L")
                                     : Container(),
-                                types.contains('P')
+                                types == 'p'
                                     ? const TypeKost(type: "P")
                                     : Container(),
+                                types == 'campur'
+                                    ? const TypeKost(type: "Campur")
+                                    : Container()
                               ],
                             )
                           ],
@@ -396,23 +402,16 @@ class Kost extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               const Text("Mulai dari "),
-                              hasPriceMonth
+                              hasPrice
                                   ? Text(
-                                      '${CurrencyFormat.convertToIdr(priceStartMonth, 0)}/bln',
+                                      CurrencyFormat.convertToIdr(
+                                          priceStart, 0),
                                       style: const TextStyle(
                                           fontSize: 14,
                                           color: Color.fromRGBO(0, 0, 0, 0.7),
                                           fontWeight: FontWeight.w300),
                                     )
                                   : Container(),
-                              hasPriceYear
-                                  ? Text(
-                                      '${CurrencyFormat.convertToIdr(priceStartYear, 0)}/thn',
-                                      style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Color.fromRGBO(0, 0, 0, 0.7),
-                                          fontWeight: FontWeight.w300))
-                                  : Container()
                             ]),
                       )
                     ],
