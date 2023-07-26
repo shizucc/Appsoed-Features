@@ -9,11 +9,10 @@ import 'package:http/http.dart' as http;
 
 // Mengambil data dari API
 Future<dynamic> getKost(dynamic id) async {
-  final url = 'https://good-plum-dugong-wrap.cyclic.app/kos/${id}';
+  final url = 'http://10.0.2.2:8000/api/kost/$id';
   final response = await http.get(Uri.parse(url));
-  final datas = jsonDecode(response.body);
-  if (datas['status'] == 200) {
-    return datas['value'];
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
   } else {
     throw Exception("Something went wrong");
   }
@@ -180,16 +179,19 @@ class _DetailKostState extends State<DetailKost> {
                                     //         imgData['galeri'].toString())
                                     //     .toList();
 
-                                    List<String> images = [
-                                      'assets/images/kost.jpg'
-                                    ];
+                                    var images = snapshot.data['kost_images'];
+                                    // Convert JSON to array
+                                    List<String> imageList = images
+                                        .map<String>((image) =>
+                                            image['image'].toString())
+                                        .toList();
 
                                     // final img =
                                     //     snapshot.data['images'].length != 0
                                     //         ? snapshot.data['images']
                                     //         : ['assets/images/kost.jpg'];
 
-                                    final name = snapshot.data['nama_kos'];
+                                    final name = snapshot.data['name'];
                                     // final List images =
                                     //     img.map((e) => e.toString()).toList();
                                     return CarouselSlider(
@@ -205,7 +207,7 @@ class _DetailKostState extends State<DetailKost> {
                                           }
                                           // autoPlay: false,
                                           ),
-                                      items: images
+                                      items: imageList
                                           .map((item) => InkWell(
                                                 onTap: () {
                                                   Navigator.push(
@@ -215,13 +217,13 @@ class _DetailKostState extends State<DetailKost> {
                                                               ViewImage(
                                                                   name: name,
                                                                   images:
-                                                                      images,
+                                                                      imageList,
                                                                   currentImage:
                                                                       _currentImg)));
                                                 },
                                                 child: Center(
-                                                    child: Image.asset(
-                                                  item,
+                                                    child: Image.network(
+                                                  "http://10.0.2.2:8000/api/kost/image/${item}",
                                                   fit: BoxFit.cover,
                                                   height: height,
                                                 )),
@@ -284,16 +286,16 @@ class _DetailKostState extends State<DetailKost> {
                         if (snapshot.hasData) {
                           var kost = snapshot.data;
 
-                          final name = kost['nama_kos'];
-                          final type = kost['type_kos'].toLowerCase();
-                          final address = kost['alamat_kos'];
-                          final location = kost['lokasi_kos'] ?? '';
-                          final facilitiesDump = kost['fasilitas'] ?? [];
+                          final name = kost['name'];
+                          final type = kost['type'].toLowerCase();
+                          final address = kost['address'] ?? '';
+                          final location = kost['location'] ?? '';
+                          final facilitiesDump = kost['kost_facilities'] ?? [];
 
                           // Convert JSON to array
                           List<String> facilities = facilitiesDump
                               .map<String>((fasilitas) =>
-                                  fasilitas['nama_fasilitas'].toString())
+                                  fasilitas['facility'].toString())
                               .toList();
 
                           bool hasLocation = location != '' ? true : false;
@@ -582,7 +584,7 @@ class ViewImage extends StatefulWidget {
       required this.name,
       required this.images,
       required this.currentImage});
-  final List<dynamic> images;
+  final List<String> images;
   final int currentImage;
   final String name;
   @override
@@ -605,6 +607,7 @@ class _ViewImageState extends State<ViewImage> {
         child: Builder(
           builder: (context) {
             final double height = MediaQuery.of(context).size.height;
+
             return CarouselSlider(
               options: CarouselOptions(
                 height: height,
@@ -615,8 +618,8 @@ class _ViewImageState extends State<ViewImage> {
               items: widget.images
                   .map((item) => Container(
                         child: Center(
-                            child: Image.asset(
-                          item,
+                            child: Image.network(
+                          "http://10.0.2.2:8000/api/kost/image/${item}",
                           fit: BoxFit.cover,
                         )),
                       ))

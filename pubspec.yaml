@@ -69,7 +69,7 @@ flutter:
   assets:
     - assets/images/error.png
     - assets/images/location_kost.png
-    - assets/images/kost.jpg
+  
    
 
   # An image asset can refer to one or more resolution-specific "variants", see

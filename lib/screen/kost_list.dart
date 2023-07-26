@@ -6,15 +6,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 Future<dynamic> getKosts() async {
-  List<Map<String, dynamic>> result = [];
-  const url = 'https://good-plum-dugong-wrap.cyclic.app/kos';
+  const url = 'http://10.0.2.2:8000/api/kost';
   final response = await http.get(Uri.parse(url));
-
-  final datas = jsonDecode(response.body);
-  if (datas['status'] == 200) {
-    final List<dynamic> kosts = datas['value'];
-    result = kosts.map((kost) => Map<String, dynamic>.from(kost)).toList();
-    return result;
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
   } else {
     throw Exception("Something went wrong");
   }
@@ -283,11 +278,11 @@ class Kosts extends StatelessWidget {
         runSpacing: 30,
         children: kosts.map((kost) {
           return Kost(
-            id: kost['id_kos'],
-            name: kost['nama_kos'],
-            images: const [],
-            region: kost['region_kos'],
-            types: kost['type_kos'].toLowerCase(),
+            id: kost['id'],
+            name: kost['name'],
+            images: kost['kost_images'],
+            region: kost['region'],
+            type: kost['type'].toLowerCase(),
             priceStart: kost['price_start'] ?? 0,
           );
         }).toList());
@@ -303,21 +298,23 @@ class Kost extends StatelessWidget {
       required this.images,
       required this.region,
       required this.priceStart,
-      required this.types});
+      required this.type});
 
   final dynamic id;
   final String name;
   final List images;
   final String region;
   final int priceStart;
-
-  final String types;
+  final String type;
 
   @override
   Widget build(BuildContext context) {
     bool hasPrice = priceStart > 0 ? true : false;
     bool hasImages = images.isNotEmpty ? true : false;
-    // var dump = priceStartMonth != 0 ? priceStartMonth : priceStartYear;
+
+    // Convert JSON to array
+    List<String> imageList =
+        images.map<String>((image) => image['image'].toString()).toList();
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(15),
@@ -333,12 +330,17 @@ class Kost extends StatelessWidget {
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(10)),
-              child: hasImages
-                  ? Image.network(images[0])
-                  : Image.asset('assets/images/kost.jpg', fit: BoxFit.fill),
-            ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(10)),
+                child: Container(
+                  height: 250,
+                  child: hasImages
+                      ? Image.network(
+                          "http://10.0.2.2:8000/api/kost/image/${imageList[0]}",
+                          fit: BoxFit.fill,
+                        )
+                      : Image.asset('assets/images/kost.jpg', fit: BoxFit.fill),
+                )),
             const SizedBox(
               height: 5,
             ),
@@ -382,13 +384,13 @@ class Kost extends StatelessWidget {
                             Wrap(
                               runSpacing: 7,
                               children: [
-                                types == 'l'
+                                type == 'l'
                                     ? const TypeKost(type: "L")
                                     : Container(),
-                                types == 'p'
+                                type == 'p'
                                     ? const TypeKost(type: "P")
                                     : Container(),
-                                types == 'campur'
+                                type == 'campur'
                                     ? const TypeKost(type: "Campur")
                                     : Container()
                               ],
