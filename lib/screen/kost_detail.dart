@@ -1,3 +1,4 @@
+import 'package:appsoed_features/screen/helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -9,7 +10,7 @@ import 'package:http/http.dart' as http;
 
 // Mengambil data dari API
 Future<dynamic> getKost(dynamic id) async {
-  final url = 'http://10.0.2.2:8000/api/kost/$id';
+  final url = 'https://api.bem-unsoed.com/api/kost/$id';
   final response = await http.get(Uri.parse(url));
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
@@ -18,22 +19,27 @@ Future<dynamic> getKost(dynamic id) async {
   }
 }
 
-void openMap(String url) async {
-  final uri = Uri.parse(url);
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri);
-  } else {}
+Future<void> openMap(String url) async {
+  if (!await launchUrl(
+    Uri.parse(url),
+    mode: LaunchMode.externalApplication,
+  )) {
+    throw Exception('Could not launch $url');
+  }
 }
 
-void openWhatsApp(String owner, String name) async {
+Future<void> openWhatsApp(String owner, String kostName) async {
+  String kost = kostName.capitalize();
   String phoneNumber = owner;
   String message =
-      "Permisi, saya ingin bertanya ketersediaan kamar kost di $name";
-  final url = "https://wa.me/$phoneNumber?text=$message}";
-  // final url = 'https://google.com';
-  if (await canLaunchUrl(Uri.parse(url))) {
-    await launchUrl(Uri.parse(url));
-  } else {}
+      "Permisi, saya ingin bertanya ketersediaan kamar kost di *$kost*";
+  final url = "https://wa.me/+62$phoneNumber?text=$message";
+  if (!await launchUrl(
+    Uri.parse(url),
+    mode: LaunchMode.externalApplication,
+  )) {
+    throw Exception('Could not launch $url');
+  }
 }
 
 // Untuk Mengubah harga menjadi format rupiah
@@ -128,7 +134,8 @@ class _DetailKostState extends State<DetailKost> {
                       future: displayKost(),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
-                          final name = snapshot.data['name'];
+                          final String nameDump = snapshot.data['name'];
+                          final String name = nameDump.capitalize();
                           return Text(name);
                         } else if (snapshot.hasError) {
                           return Container();
@@ -179,8 +186,9 @@ class _DetailKostState extends State<DetailKost> {
                                     //         imgData['galeri'].toString())
                                     //     .toList();
 
-                                    var images = snapshot.data['kost_images'];
+                                    List images = snapshot.data['kost_images'];
                                     // Convert JSON to array
+
                                     List<String> imageList = images
                                         .map<String>((image) =>
                                             image['image'].toString())
@@ -191,7 +199,9 @@ class _DetailKostState extends State<DetailKost> {
                                     //         ? snapshot.data['images']
                                     //         : ['assets/images/kost.jpg'];
 
-                                    final name = snapshot.data['name'];
+                                    final String nameDump =
+                                        snapshot.data['name'];
+                                    final name = nameDump.capitalize();
                                     // final List images =
                                     //     img.map((e) => e.toString()).toList();
                                     return CarouselSlider(
@@ -222,11 +232,18 @@ class _DetailKostState extends State<DetailKost> {
                                                                       _currentImg)));
                                                 },
                                                 child: Center(
-                                                    child: Image.network(
-                                                  "http://10.0.2.2:8000/api/kost/image/${item}",
-                                                  fit: BoxFit.cover,
-                                                  height: height,
-                                                )),
+                                                    child: (imageList
+                                                            .isNotEmpty)
+                                                        ? Image.network(
+                                                            "https://api.bem-unsoed.com/api/kost/image/${item}",
+                                                            fit: BoxFit.cover,
+                                                            height: height,
+                                                          )
+                                                        : Image.asset(
+                                                            'asset/images/kost_no_image.png',
+                                                            fit: BoxFit.cover,
+                                                            height: height,
+                                                          )),
                                               ))
                                           .toList(),
                                     );
@@ -253,7 +270,10 @@ class _DetailKostState extends State<DetailKost> {
                         future: displayKost(),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
-                            var imgLength = 1;
+                            var imgLength =
+                                snapshot.data['kost_images'].length > 0
+                                    ? snapshot.data['kost_images'].length
+                                    : 1;
                             return ClipRRect(
                               child: Container(
                                   decoration: BoxDecoration(
@@ -286,7 +306,8 @@ class _DetailKostState extends State<DetailKost> {
                         if (snapshot.hasData) {
                           var kost = snapshot.data;
 
-                          final name = kost['name'];
+                          final String nameDump = kost['name'];
+                          final name = nameDump.capitalize();
                           final type = kost['type'].toLowerCase();
                           final address = kost['address'] ?? '';
                           final location = kost['location'] ?? '';
@@ -295,7 +316,7 @@ class _DetailKostState extends State<DetailKost> {
                           // Convert JSON to array
                           List<String> facilities = facilitiesDump
                               .map<String>((fasilitas) =>
-                                  fasilitas['facility'].toString())
+                                  fasilitas['facility'].toString().capitalize())
                               .toList();
 
                           bool hasLocation = location != '' ? true : false;
@@ -480,7 +501,7 @@ class _DetailKostState extends State<DetailKost> {
               future: displayKost(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  final price = snapshot.data['price_start'];
+                  final price = int.parse(snapshot.data['price_start']);
                   return Row(
                     children: [
                       Expanded(
@@ -498,7 +519,7 @@ class _DetailKostState extends State<DetailKost> {
                                 children: [
                                   price != 0
                                       ? Text(
-                                          '${CurrencyFormat.convertToIdr(price, 0)}',
+                                          CurrencyFormat.convertToIdr(price, 0),
                                           style: const TextStyle(
                                               fontSize: 18,
                                               color: Color.fromRGBO(
@@ -619,7 +640,7 @@ class _ViewImageState extends State<ViewImage> {
                   .map((item) => Container(
                         child: Center(
                             child: Image.network(
-                          "http://10.0.2.2:8000/api/kost/image/${item}",
+                          "https://api.bem-unsoed.com/api/kost/image/${item}",
                           fit: BoxFit.cover,
                         )),
                       ))

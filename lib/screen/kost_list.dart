@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'helper.dart';
 
 Future<dynamic> getKosts() async {
-  const url = 'http://10.0.2.2:8000/api/kost';
+  const url = 'https://api.bem-unsoed.com/api/kost';
   final response = await http.get(Uri.parse(url));
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
@@ -283,7 +284,7 @@ class Kosts extends StatelessWidget {
             images: kost['kost_images'],
             region: kost['region'],
             type: kost['type'].toLowerCase(),
-            priceStart: kost['price_start'] ?? 0,
+            priceStart: int.parse(kost['price_start']) ?? 0,
           );
         }).toList());
   }
@@ -329,18 +330,17 @@ class Kost extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(10)),
-                child: Container(
-                  height: 250,
-                  child: hasImages
-                      ? Image.network(
-                          "http://10.0.2.2:8000/api/kost/image/${imageList[0]}",
-                          fit: BoxFit.fill,
-                        )
-                      : Image.asset('assets/images/kost.jpg', fit: BoxFit.fill),
-                )),
+            Container(
+              height: 200,
+              width: MediaQuery.of(context).size.width,
+              child: hasImages
+                  ? Image.network(
+                      "https://api.bem-unsoed.com/api/kost/image/${imageList[0]}",
+                      fit: BoxFit.fill,
+                    )
+                  : Image.asset('assets/images/kost_no_image.png',
+                      fit: BoxFit.fill),
+            ),
             const SizedBox(
               height: 5,
             ),
@@ -350,7 +350,7 @@ class Kost extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    name.capitalize(),
                     style: const TextStyle(fontSize: 22),
                   ),
                   Row(
@@ -369,7 +369,7 @@ class Kost extends StatelessWidget {
                                     color: Color.fromRGBO(0, 0, 0, 0.5),
                                   ),
                                   Text(
-                                    region,
+                                    region.capitalize(),
                                     style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w300,

@@ -69,6 +69,7 @@ flutter:
   assets:
     - assets/images/error.png
     - assets/images/location_kost.png
+    - assets/images/kost_no_image.png
   
    
 
