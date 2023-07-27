@@ -1,3 +1,4 @@
+import 'package:appsoed_features/screen/helper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
@@ -9,32 +10,36 @@ import 'package:http/http.dart' as http;
 
 // Mengambil data dari API
 Future<dynamic> getKost(dynamic id) async {
-  final url = 'https://good-plum-dugong-wrap.cyclic.app/kos/${id}';
+  final url = 'https://api.bem-unsoed.com/api/kost/$id';
   final response = await http.get(Uri.parse(url));
-  final datas = jsonDecode(response.body);
-  if (datas['status'] == 200) {
-    return datas['value'];
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
   } else {
     throw Exception("Something went wrong");
   }
 }
 
-void openMap(String url) async {
-  final uri = Uri.parse(url);
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri);
-  } else {}
+Future<void> openMap(String url) async {
+  if (!await launchUrl(
+    Uri.parse(url),
+    mode: LaunchMode.externalApplication,
+  )) {
+    throw Exception('Could not launch $url');
+  }
 }
 
-void openWhatsApp(String owner, String name) async {
+Future<void> openWhatsApp(String owner, String kostName) async {
+  String kost = kostName.capitalize();
   String phoneNumber = owner;
   String message =
-      "Permisi, saya ingin bertanya ketersediaan kamar kost di $name";
-  final url = "https://wa.me/$phoneNumber?text=$message}";
-  // final url = 'https://google.com';
-  if (await canLaunchUrl(Uri.parse(url))) {
-    await launchUrl(Uri.parse(url));
-  } else {}
+      "Permisi, saya ingin bertanya ketersediaan kamar kost di *$kost*";
+  final url = "https://wa.me/+62$phoneNumber?text=$message";
+  if (!await launchUrl(
+    Uri.parse(url),
+    mode: LaunchMode.externalApplication,
+  )) {
+    throw Exception('Could not launch $url');
+  }
 }
 
 // Untuk Mengubah harga menjadi format rupiah
@@ -129,7 +134,8 @@ class _DetailKostState extends State<DetailKost> {
                       future: displayKost(),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
-                          final name = snapshot.data['name'];
+                          final String nameDump = snapshot.data['name'];
+                          final String name = nameDump.capitalize();
                           return Text(name);
                         } else if (snapshot.hasError) {
                           return Container();
@@ -180,16 +186,22 @@ class _DetailKostState extends State<DetailKost> {
                                     //         imgData['galeri'].toString())
                                     //     .toList();
 
-                                    List<String> images = [
-                                      'assets/images/kost.jpg'
-                                    ];
+                                    List images = snapshot.data['kost_images'];
+                                    // Convert JSON to array
+
+                                    List<String> imageList = images
+                                        .map<String>((image) =>
+                                            image['image'].toString())
+                                        .toList();
 
                                     // final img =
                                     //     snapshot.data['images'].length != 0
                                     //         ? snapshot.data['images']
                                     //         : ['assets/images/kost.jpg'];
 
-                                    final name = snapshot.data['nama_kos'];
+                                    final String nameDump =
+                                        snapshot.data['name'];
+                                    final name = nameDump.capitalize();
                                     // final List images =
                                     //     img.map((e) => e.toString()).toList();
                                     return CarouselSlider(
@@ -205,7 +217,7 @@ class _DetailKostState extends State<DetailKost> {
                                           }
                                           // autoPlay: false,
                                           ),
-                                      items: images
+                                      items: imageList
                                           .map((item) => InkWell(
                                                 onTap: () {
                                                   Navigator.push(
@@ -215,16 +227,23 @@ class _DetailKostState extends State<DetailKost> {
                                                               ViewImage(
                                                                   name: name,
                                                                   images:
-                                                                      images,
+                                                                      imageList,
                                                                   currentImage:
                                                                       _currentImg)));
                                                 },
                                                 child: Center(
-                                                    child: Image.asset(
-                                                  item,
-                                                  fit: BoxFit.cover,
-                                                  height: height,
-                                                )),
+                                                    child: (imageList
+                                                            .isNotEmpty)
+                                                        ? Image.network(
+                                                            "https://api.bem-unsoed.com/api/kost/image/${item}",
+                                                            fit: BoxFit.cover,
+                                                            height: height,
+                                                          )
+                                                        : Image.asset(
+                                                            'asset/images/kost_no_image.png',
+                                                            fit: BoxFit.cover,
+                                                            height: height,
+                                                          )),
                                               ))
                                           .toList(),
                                     );
@@ -251,7 +270,10 @@ class _DetailKostState extends State<DetailKost> {
                         future: displayKost(),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
-                            var imgLength = 1;
+                            var imgLength =
+                                snapshot.data['kost_images'].length > 0
+                                    ? snapshot.data['kost_images'].length
+                                    : 1;
                             return ClipRRect(
                               child: Container(
                                   decoration: BoxDecoration(
@@ -284,16 +306,17 @@ class _DetailKostState extends State<DetailKost> {
                         if (snapshot.hasData) {
                           var kost = snapshot.data;
 
-                          final name = kost['nama_kos'];
-                          final type = kost['type_kos'].toLowerCase();
-                          final address = kost['alamat_kos'];
-                          final location = kost['lokasi_kos'] ?? '';
-                          final facilitiesDump = kost['fasilitas'] ?? [];
+                          final String nameDump = kost['name'];
+                          final name = nameDump.capitalize();
+                          final type = kost['type'].toLowerCase();
+                          final address = kost['address'] ?? '';
+                          final location = kost['location'] ?? '';
+                          final facilitiesDump = kost['kost_facilities'] ?? [];
 
                           // Convert JSON to array
                           List<String> facilities = facilitiesDump
                               .map<String>((fasilitas) =>
-                                  fasilitas['nama_fasilitas'].toString())
+                                  fasilitas['facility'].toString().capitalize())
                               .toList();
 
                           bool hasLocation = location != '' ? true : false;
@@ -478,7 +501,7 @@ class _DetailKostState extends State<DetailKost> {
               future: displayKost(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  final price = snapshot.data['price_start'];
+                  final price = int.parse(snapshot.data['price_start']);
                   return Row(
                     children: [
                       Expanded(
@@ -496,7 +519,7 @@ class _DetailKostState extends State<DetailKost> {
                                 children: [
                                   price != 0
                                       ? Text(
-                                          '${CurrencyFormat.convertToIdr(price, 0)}',
+                                          CurrencyFormat.convertToIdr(price, 0),
                                           style: const TextStyle(
                                               fontSize: 18,
                                               color: Color.fromRGBO(
@@ -582,7 +605,7 @@ class ViewImage extends StatefulWidget {
       required this.name,
       required this.images,
       required this.currentImage});
-  final List<dynamic> images;
+  final List<String> images;
   final int currentImage;
   final String name;
   @override
@@ -605,6 +628,7 @@ class _ViewImageState extends State<ViewImage> {
         child: Builder(
           builder: (context) {
             final double height = MediaQuery.of(context).size.height;
+
             return CarouselSlider(
               options: CarouselOptions(
                 height: height,
@@ -615,8 +639,8 @@ class _ViewImageState extends State<ViewImage> {
               items: widget.images
                   .map((item) => Container(
                         child: Center(
-                            child: Image.asset(
-                          item,
+                            child: Image.network(
+                          "https://api.bem-unsoed.com/api/kost/image/${item}",
                           fit: BoxFit.cover,
                         )),
                       ))
