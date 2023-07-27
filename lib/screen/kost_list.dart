@@ -28,13 +28,6 @@ enum AppBarState { expanded, collapsed }
 class _ListKostState extends State<ListKost> {
   final ScrollController _scrollController = ScrollController();
   late AppBarState _appBarState;
-  final List<String> kostList = [
-    'Kost A',
-    'Kost B',
-    'Kost C',
-    'Kost D',
-    'Kost E',
-  ];
 
   @override
   void initState() {
@@ -284,7 +277,7 @@ class Kosts extends StatelessWidget {
             images: kost['kost_images'],
             region: kost['region'],
             type: kost['type'].toLowerCase(),
-            priceStart: int.parse(kost['price_start']) ?? 0,
+            priceStart: int.parse(kost['price_start']),
           );
         }).toList());
   }
