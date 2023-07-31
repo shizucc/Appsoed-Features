@@ -502,6 +502,7 @@ class _DetailKostState extends State<DetailKost> {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   final price = int.parse(snapshot.data['price_start']);
+                  final owner = snapshot.data['owner'];
                   return Row(
                     children: [
                       Expanded(
@@ -532,25 +533,28 @@ class _DetailKostState extends State<DetailKost> {
                           ],
                         ),
                       ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: InkWell(
-                          onTap: () => openWhatsApp(
-                              snapshot.data['owner'], snapshot.data['name']),
-                          child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 10),
-                              decoration: const BoxDecoration(
-                                  color: Color.fromRGBO(253, 183, 49, 1)),
-                              child: const Text(
-                                "Hubungi Pemilik",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white),
-                              )),
-                        ),
-                      ),
+                      owner != '0'
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: InkWell(
+                                onTap: () => openWhatsApp(
+                                    snapshot.data['owner'],
+                                    snapshot.data['name']),
+                                child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 10),
+                                    decoration: const BoxDecoration(
+                                        color: Color.fromRGBO(253, 183, 49, 1)),
+                                    child: const Text(
+                                      "Hubungi Pemilik",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white),
+                                    )),
+                              ),
+                            )
+                          : Container()
                     ],
                   );
                 } else if (snapshot.hasError) {
